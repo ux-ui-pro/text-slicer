@@ -10,8 +10,8 @@
 </div>
 
 <p align="center">TextSlicer is designed to split text within an HTML element into separate words and/or characters, wrapping each word and/or character in separate span elements.</p>
-<p align="center"><sup>700B gzipped</sup></p>
-<p align="center"><a href="https://codepen.io/ux-ui/pen/vYMoGoG">Demo</a></p>
+<p align="center"><sup>850B gzipped</sup></p>
+<p align="center"><a href="https://codepen.io/ux-ui/full/vYMoGoG">Demo</a></p>
 <br>
 
 &#10148; **Install**
@@ -65,11 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 &#10148; **Parameters**
 
-|     Option     |          Type           |    Default     | Description                                                                                                      |
-|:--------------:|:-----------------------:|:--------------:|:-----------------------------------------------------------------------------------------------------------------|
-|  `container`   | `HTMLElement \| string` | `.text-slicer` | The element or selector of the element containing the text to be split.                                          |
-|     `mode`     |        `string`         |     `both`     | Text split mode: 'words' to split into words, 'chars' to split into characters, 'both' to split into both types. |
-| `cssVariables` |        `boolean`        |    `false`     | A logical value indicating whether to add CSS variables for word and character indexes.                          |
+|      Option       |          Type           |    Default     | Description                                                                                                                                           |
+|:-----------------:|:-----------------------:|:--------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------|
+|    `container`    | `HTMLElement \| string` | `.text-slicer` | The container element or a selector for the element containing the text to be split. You can pass either a DOM element or a CSS selector string.      |
+|    `splitMode`    |        `string`         |     `both`     | Determines how the text will be split: 'words' to split into words, 'chars' to split into characters, 'both' to split into both words and characters. |
+|  `cssVariables`   |        `boolean`        |    `false`     | If `true`, CSS variables for word and character indexes will be added to the spans.                                                                   |
+| `dataAttributes`  |        `boolean`        |    `false`     | If `true`, `data-word` and `data-char` attributes will be added to the generated word and character spans for additional data handling or styling.    |
 <br>
 
 &#10148; **License**
