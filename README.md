@@ -10,7 +10,7 @@
 </div>
 
 <p align="center">TextSlicer is designed to split text within an HTML element into separate words and/or characters, wrapping each word and/or character in separate span elements.</p>
-<p align="center"><sup>1kB gzipped</sup></p>
+<p align="center"><sup>700B gzipped</sup></p>
 <p align="center"><a href="https://codepen.io/ux-ui/pen/vYMoGoG">Demo</a></p>
 <br>
 
@@ -35,10 +35,8 @@ const textSlicer = new TextSlicer();
 
 textSlicer.init();
 ```
-<br>
-Initialization with specified parameters
-<br>
 
+<sub>Initialization with specified parameters</sub>
 ```javascript
 document.addEventListener('DOMContentLoaded', () => {
   const textSlicer = new TextSlicer({
@@ -50,10 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
   textSlicer.init();
 });
 ```
-<br>
-How to apply the TextSlicer class to all elements on a page
-<br>
 
+<sub>How to apply the TextSlicer class to all elements on a page</sub>
 ```javascript
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.text-slicer').forEach((element) => {
