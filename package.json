@@ -1,0 +1,71 @@
+{
+  "name": "text-slicer",
+  "version": "0.0.1-alpha.1",
+  "description": "TextSlicer is designed to split text within an HTML element into separate words and/or characters, wrapping each word and/or character in separate span elements.",
+  "author": "ux-ui.pro",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ux-ui-pro/text-slicer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ux-ui-pro/text-slicer/issues"
+  },
+  "homepage": "https://github.com/ux-ui-pro/text-slicer",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.module.js",
+  "targets": {
+    "main": {
+      "source": "src/TextSlicer.js"
+    },
+    "module": {
+      "source": "src/TextSlicer.js"
+    }
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "scripts": {
+    "clean": "rm -rf dist .parcel-cache",
+    "build": "yarn clean && parcel build",
+    "lint:js": "eslint --ext .js",
+    "lintfix": "yarn lint:js --fix"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0 || ^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "parcel": "^2.12.0"
+  },
+  "keywords": [
+    "text",
+    "splitter",
+    "splitting",
+    "DOM",
+    "manipulation",
+    "animation",
+    "JavaScript",
+    "effects",
+    "fragment",
+    "words",
+    "characters",
+    "HTML",
+    "processing",
+    "CSS",
+    "variables",
+    "web",
+    "development",
+    "transformation",
+    "customization",
+    "frontend",
+    "element",
+    "library",
+    "content",
+    "custom",
+    "effects",
+    "textslicer",
+    "textmanipulation",
+    "js",
+    "webdev",
+    "textprocessing"
+  ]
+}
