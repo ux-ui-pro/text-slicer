@@ -1,6 +1,6 @@
 {
   "name": "text-slicer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TextSlicer is designed to split text within an HTML element into separate words and/or characters, wrapping each word and/or character in separate span elements.",
   "author": "ux-ui.pro",
   "license": "MIT",
