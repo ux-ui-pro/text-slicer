@@ -1,6 +1,6 @@
 {
   "name": "text-slicer",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "TextSlicer is designed to split text within an HTML element into separate words and/or characters, wrapping each word and/or character in separate span elements.",
   "author": "ux-ui.pro",
   "license": "MIT",
@@ -13,35 +13,31 @@
   },
   "homepage": "https://github.com/ux-ui-pro/text-slicer",
   "sideEffects": false,
-  "main": "dist/index.js",
-  "module": "dist/index.module.js",
-  "targets": {
-    "main": {
-      "source": "src/TextSlicer.js"
-    },
-    "module": {
-      "source": "src/TextSlicer.js"
-    }
-  },
-  "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
     "clean": "rm -rf dist .parcel-cache",
     "build": "yarn clean && parcel build",
-    "lint:js": "eslint --ext .js",
+    "lint:js": "eslint --ext .ts,.js",
     "lintfix": "yarn lint:js --fix"
   },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.module.js",
+  "types": "dist/index.d.ts",
   "devDependencies": {
+    "@parcel/packager-ts": "2.12.0",
+    "@parcel/transformer-sass": "2.12.0",
+    "@parcel/transformer-typescript-types": "2.12.0",
     "eslint": "^7.32.0 || ^8.57.0",
-    "eslint-plugin-import": "^2.29.1",
     "eslint-config-airbnb-base": "^15.0.0",
-    "parcel": "^2.12.0"
+    "parcel": "^2.12.0",
+    "typescript": "^5.4.5"
   },
   "keywords": [
     "text",
     "splitter",
     "splitting",
     "DOM",
-    "manipulation",
     "animation",
     "JavaScript",
     "effects",
@@ -54,16 +50,12 @@
     "variables",
     "web",
     "development",
-    "transformation",
-    "customization",
     "frontend",
-    "element",
     "library",
     "content",
     "custom",
     "effects",
     "textslicer",
-    "textmanipulation",
     "js",
     "webdev",
     "textprocessing"
