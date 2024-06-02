@@ -1,9 +1,14 @@
 class TextSlicer {
   private readonly textElement: HTMLElement | null;
+
   private originalText: string;
+
   private readonly splitMode: 'words' | 'chars' | 'both';
+
   private readonly cssVariables: boolean;
+
   private readonly dataAttributes: boolean;
+
   private charIndexCounter: number;
 
   public constructor(options: {
@@ -12,10 +17,9 @@ class TextSlicer {
     cssVariables?: boolean;
     dataAttributes?: boolean;
   } = {}) {
-    this.textElement =
-      options.container instanceof HTMLElement
-        ? options.container
-        : document.querySelector(options.container || '.text-slicer');
+    this.textElement = options.container instanceof HTMLElement
+      ? options.container
+      : document.querySelector(options.container || '.text-slicer');
 
     if (!this.textElement) {
       this.originalText = '';

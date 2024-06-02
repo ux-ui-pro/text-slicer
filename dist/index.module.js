@@ -1,4 +1,10 @@
 class $643fcf18b2d2e76f$var$TextSlicer {
+    textElement;
+    originalText;
+    splitMode;
+    cssVariables;
+    dataAttributes;
+    charIndexCounter;
     constructor(options = {}){
         this.textElement = options.container instanceof HTMLElement ? options.container : document.querySelector(options.container || ".text-slicer");
         if (!this.textElement) {

@@ -10,7 +10,7 @@
 </div>
 
 <p align="center">TextSlicer is designed to split text within an HTML element into separate words and/or characters, wrapping each word and/or character in separate span elements.</p>
-<p align="center"><sup>750B gzipped</sup></p>
+<p align="center"><sup>850B gzipped</sup></p>
 <p align="center"><a href="https://codepen.io/ux-ui/full/vYMoGoG">Demo</a></p>
 <br>
 

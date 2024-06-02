@@ -11,6 +11,12 @@ $parcel$defineInteropFlag(module.exports);
 
 $parcel$export(module.exports, "default", function () { return $a196c1ed25598f0e$export$2e2bcd8739ae039; });
 class $a196c1ed25598f0e$var$TextSlicer {
+    textElement;
+    originalText;
+    splitMode;
+    cssVariables;
+    dataAttributes;
+    charIndexCounter;
     constructor(options = {}){
         this.textElement = options.container instanceof HTMLElement ? options.container : document.querySelector(options.container || ".text-slicer");
         if (!this.textElement) {
