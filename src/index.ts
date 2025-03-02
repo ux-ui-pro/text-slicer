@@ -11,15 +11,18 @@ class TextSlicer {
 
   private charIndexCounter: number;
 
-  public constructor(options: {
-    container?: HTMLElement | string;
-    splitMode?: 'words' | 'chars' | 'both';
-    cssVariables?: boolean;
-    dataAttributes?: boolean;
-  } = {}) {
-    this.textElement = options.container instanceof HTMLElement
-      ? options.container
-      : document.querySelector(options.container || '.text-slicer');
+  public constructor(
+    options: {
+      container?: HTMLElement | string;
+      splitMode?: 'words' | 'chars' | 'both';
+      cssVariables?: boolean;
+      dataAttributes?: boolean;
+    } = {},
+  ) {
+    this.textElement =
+      options.container instanceof HTMLElement
+        ? options.container
+        : document.querySelector(options.container || '.text-slicer');
 
     if (!this.textElement) {
       this.originalText = '';
