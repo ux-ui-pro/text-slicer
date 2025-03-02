@@ -1,14 +1,9 @@
 class TextSlicer {
   private readonly textElement: HTMLElement | null;
-
   private originalText: string;
-
   private readonly splitMode: 'words' | 'chars' | 'both';
-
   private readonly cssVariables: boolean;
-
   private readonly dataAttributes: boolean;
-
   private charIndexCounter: number;
 
   public constructor(
