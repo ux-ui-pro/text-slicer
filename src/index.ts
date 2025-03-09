@@ -1,23 +1,30 @@
+export type SplitMode = 'words' | 'chars' | 'both';
+
+export interface TextSlicerOptions {
+  container?: HTMLElement | string;
+  splitMode?: SplitMode;
+  cssVariables?: boolean;
+  dataAttributes?: boolean;
+}
+
 class TextSlicer {
   private readonly textElement: HTMLElement | null;
   private originalText: string;
-  private readonly splitMode: 'words' | 'chars' | 'both';
+  private readonly splitMode: SplitMode;
   private readonly cssVariables: boolean;
   private readonly dataAttributes: boolean;
   private charIndexCounter: number;
 
-  public constructor(
-    options: {
-      container?: HTMLElement | string;
-      splitMode?: 'words' | 'chars' | 'both';
-      cssVariables?: boolean;
-      dataAttributes?: boolean;
-    } = {},
-  ) {
+  public constructor(options: TextSlicerOptions = {}) {
+    const {
+      container = '.text-slicer',
+      splitMode = 'both',
+      cssVariables = false,
+      dataAttributes = false,
+    } = options;
+
     this.textElement =
-      options.container instanceof HTMLElement
-        ? options.container
-        : document.querySelector(options.container || '.text-slicer');
+      typeof container === 'string' ? document.querySelector(container) : (container ?? null);
 
     if (!this.textElement) {
       this.originalText = '';
@@ -25,13 +32,14 @@ class TextSlicer {
       this.cssVariables = false;
       this.dataAttributes = false;
       this.charIndexCounter = 0;
+
       return;
     }
 
     this.originalText = this.textElement.textContent?.trim() || '';
-    this.splitMode = options.splitMode || 'both';
-    this.cssVariables = options.cssVariables || false;
-    this.dataAttributes = options.dataAttributes || false;
+    this.splitMode = splitMode;
+    this.cssVariables = cssVariables;
+    this.dataAttributes = dataAttributes;
     this.charIndexCounter = 0;
   }
 
@@ -39,6 +47,7 @@ class TextSlicer {
     if (!this.textElement) return;
 
     this.clear();
+
     this.charIndexCounter = 0;
 
     const fragment = document.createDocumentFragment();
@@ -66,12 +75,14 @@ class TextSlicer {
 
         word.split('').forEach((char) => {
           const charSpan = this.createCharSpan(char);
+
           wordSpan.append(charSpan);
         });
 
         fragment.append(wordSpan);
       } else {
         const wordSpan = this.createWordSpan(wordIndex);
+
         wordSpan.append(document.createTextNode(word));
         fragment.append(wordSpan);
       }
@@ -85,12 +96,14 @@ class TextSlicer {
   private splitChars(fragment: DocumentFragment): void {
     this.originalText.split('').forEach((char) => {
       const charSpan = this.createCharSpan(char);
+
       fragment.append(charSpan);
     });
   }
 
-  private createWordSpan(index: number, word: string = ''): HTMLElement {
+  private createWordSpan(index: number, word: string = ''): HTMLSpanElement {
     const wordSpan = document.createElement('span');
+
     wordSpan.classList.add('word');
 
     if (this.dataAttributes) {
@@ -104,8 +117,9 @@ class TextSlicer {
     return wordSpan;
   }
 
-  private createCharSpan(char: string): HTMLElement {
+  private createCharSpan(char: string): HTMLSpanElement {
     const charSpan = document.createElement('span');
+
     charSpan.textContent = char;
 
     if (this.dataAttributes) {
@@ -127,8 +141,9 @@ class TextSlicer {
     return charSpan;
   }
 
-  private static createSpaceSpan(): HTMLElement {
+  private static createSpaceSpan(): HTMLSpanElement {
     const spaceSpan = document.createElement('span');
+
     spaceSpan.classList.add('whitespace');
     spaceSpan.textContent = ' ';
 
