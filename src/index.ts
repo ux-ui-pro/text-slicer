@@ -6,7 +6,7 @@ export interface TextSlicerOptions {
   cssVariables?: boolean;
   dataAttributes?: boolean;
   keepWhitespaceNodes?: boolean;
-  freezeWordWidths?: boolean;
+  containerHeightVar?: boolean;
 }
 
 export interface TextSlicerMetrics {
@@ -26,7 +26,7 @@ const DEFAULT_OPTIONS: RuntimeOptions = {
   cssVariables: false,
   dataAttributes: false,
   keepWhitespaceNodes: true,
-  freezeWordWidths: false,
+  containerHeightVar: false,
 };
 
 export const CLASSNAMES = Object.freeze({
@@ -40,6 +40,8 @@ const CSS_VAR_WORD_TOTAL = '--word-total';
 const CSS_VAR_CHAR_TOTAL = '--char-total';
 const CSS_VAR_WORD_INDEX = '--word-index';
 const CSS_VAR_CHAR_INDEX = '--char-index';
+const CSS_VAR_CONTAINER_HEIGHT = '--container-height';
+const MEASURING_CLASS = 'ts-measuring';
 
 const canUseDOM = (): boolean => typeof window !== 'undefined' && typeof document !== 'undefined';
 
@@ -59,7 +61,6 @@ const splitIntoGraphemes = (text: string): string[] => {
 
   if (typeof Seg === 'function') {
     const segmenter = new Seg('en', { granularity: 'grapheme' });
-
     return Array.from(segmenter.segment(text), (s: Intl.SegmentData) => s.segment);
   }
 
@@ -101,18 +102,11 @@ export class TextSlicer {
   private callbacks: TextSlicerCallbacks | undefined;
   private charIndex: number;
   private mounted: boolean;
-  private ro: ResizeObserver | null = null;
-  private frozen = false;
-
-  private freezeScheduled = false;
-
-  private freezeWordWidthsBound: () => void = (): void => {
-    this.scheduleFreezeNow();
-  };
+  private heightLocked: boolean;
+  private resizeObserver?: ResizeObserver;
 
   constructor(options: TextSlicerOptions = {}, callbacks?: TextSlicerCallbacks) {
     const el = resolveContainer(options.container);
-
     this.el = el;
     this.original = isHTMLElement(el) ? (el.textContent?.toString() ?? '') : '';
     this.opts = {
@@ -123,6 +117,7 @@ export class TextSlicer {
     this.callbacks = callbacks;
     this.charIndex = 0;
     this.mounted = false;
+    this.heightLocked = false;
   }
 
   get metrics(): TextSlicerMetrics {
@@ -140,6 +135,10 @@ export class TextSlicer {
 
     this.mounted = true;
     this.split();
+
+    if (this.opts.containerHeightVar) {
+      this.initHeightObserver();
+    }
   }
 
   reinit(newText?: string, next?: Partial<TextSlicerOptions>): void {
@@ -152,8 +151,6 @@ export class TextSlicer {
 
   clear(): void {
     if (!this.el) return;
-
-    this.unfreezeWordWidths();
 
     emptyElement(this.el);
   }
@@ -181,18 +178,24 @@ export class TextSlicer {
       this.el.style.setProperty(CSS_VAR_CHAR_TOTAL, String(text.length));
     }
 
-    void this.scheduleFreezeWordWidths()
-      .then(() => {
-        this.callbacks?.onAfterRender?.(this.metrics);
-      })
-      .catch(() => {});
+    this.callbacks?.onAfterRender?.(this.metrics);
   }
 
   destroy(): void {
     if (!this.el) return;
 
-    this.detachResizeObserver();
     this.clear();
+    this.unlockHeight();
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+      this.resizeObserver = undefined;
+    }
+
+    if (this.opts.containerHeightVar) {
+      this.el.style.removeProperty(CSS_VAR_CONTAINER_HEIGHT);
+    }
+
     this.mounted = false;
   }
 
@@ -200,6 +203,24 @@ export class TextSlicer {
     this.opts = { ...this.opts, ...omitUndefined(next) } as RuntimeOptions;
 
     if (this.mounted) this.split();
+  }
+
+  lockHeight(): void {
+    if (!this.el) return;
+
+    const h = this.measureHeight();
+
+    if (h > 0) {
+      this.el.style.height = `${h}px`;
+      this.heightLocked = true;
+    }
+  }
+
+  unlockHeight(): void {
+    if (!this.el) return;
+
+    this.el.style.removeProperty('height');
+    this.heightLocked = false;
   }
 
   private appendWords(fragment: DocumentFragment, words: string[]): void {
@@ -284,109 +305,35 @@ export class TextSlicer {
     return span;
   }
 
-  private scheduleFreezeNow(): void {
-    if (!this.el || !this.opts.freezeWordWidths) return;
-    if (this.freezeScheduled) return;
+  private measureHeight(): number {
+    if (!this.el) return 0;
 
-    this.freezeScheduled = true;
+    this.el.classList.add(MEASURING_CLASS);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    this.el.offsetHeight;
 
-    requestAnimationFrame(() => {
-      this.freezeScheduled = false;
-      this.freezeWordWidths();
-    });
+    let h = this.el.offsetHeight || this.el.clientHeight || 0;
+
+    if (!h) {
+      h = Math.round(this.el.getBoundingClientRect().height);
+    }
+
+    this.el.classList.remove(MEASURING_CLASS);
+
+    return Math.max(0, Math.ceil(h));
   }
 
-  private async scheduleFreezeWordWidths(): Promise<void> {
-    if (!this.el || !this.opts.freezeWordWidths) return;
-
-    try {
-      await (document as unknown as { fonts?: { ready?: Promise<void> } }).fonts?.ready;
-    } catch {}
-
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
-
-    this.scheduleFreezeNow();
-    this.attachResizeObserver();
-  }
-
-  private measureWordWidths(): number[] {
-    if (!this.el) return [];
-
-    const words = this.el.querySelectorAll<HTMLElement>(`.${CLASSNAMES.word}`);
-
-    return Array.from(words, (w) => {
-      w.style.width = '';
-      w.style.flex = '';
-
-      const { width } = w.getBoundingClientRect();
-
-      return Math.ceil(width);
-    });
-  }
-
-  private applyWordWidths(widths: number[]): void {
+  private initHeightObserver(): void {
     if (!this.el) return;
 
-    const words = this.el.querySelectorAll<HTMLElement>(`.${CLASSNAMES.word}`);
+    this.resizeObserver = new ResizeObserver(() => {
+      const h = this.measureHeight();
 
-    words.forEach((w, i) => {
-      const width = widths[i] ?? 0;
-
-      w.style.width = `${width}px`;
-      w.style.flex = '0 0 auto';
-    });
-  }
-
-  private freezeWordWidths(): void {
-    if (!this.el) return;
-
-    const widths = this.measureWordWidths();
-
-    this.applyWordWidths(widths);
-    this.frozen = true;
-  }
-
-  private unfreezeWordWidths(): void {
-    if (!this.el || !this.frozen) return;
-
-    const words = this.el.querySelectorAll<HTMLElement>(`.${CLASSNAMES.word}`);
-
-    words.forEach((w) => {
-      w.style.width = '';
-      w.style.flex = '';
-    });
-
-    this.frozen = false;
-  }
-
-  private attachResizeObserver(): void {
-    if (!this.el || !this.opts.freezeWordWidths) return;
-
-    if (!this.ro) {
-      this.ro = new ResizeObserver(() => {
-        this.scheduleFreezeNow();
-      });
-
-      try {
-        (
-          this.ro as unknown as {
-            observe: (t: Element, o?: { box?: ResizeObserverBoxOptions }) => void;
-          }
-        ).observe(this.el, { box: 'border-box' as ResizeObserverBoxOptions });
-      } catch {
-        this.ro.observe(this.el);
+      if (h > 0) {
+        this.el!.style.setProperty(CSS_VAR_CONTAINER_HEIGHT, `${h}px`);
       }
-    }
+    });
 
-    window.addEventListener('resize', this.freezeWordWidthsBound, { passive: true });
-  }
-
-  private detachResizeObserver(): void {
-    if (this.ro) {
-      this.ro.disconnect();
-      this.ro = null;
-    }
-
-    window.removeEventListener('resize', this.freezeWordWidthsBound);
+    this.resizeObserver.observe(this.el);
   }
 }

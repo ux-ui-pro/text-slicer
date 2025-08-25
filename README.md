@@ -8,168 +8,98 @@
 
 </div>
 
-<p align="center">Split text inside an HTML element into words and/or characters, wrapping each in a dedicated <code>&lt;span&gt;</code>. Built for robust animation pipelines and i18n-safe rendering.</p>
+<p align="center">TextSlicer splits text within an HTML element into words and/or characters, wrapping each in individual spans. It provides flexible options, CSS variable integration, lifecycle management, and callbacks for post-render handling.</p>
+<p align="center"><sup>1.5kB gzipped</sup></p>
 <p align="center"><a href="https://codepen.io/ux-ui/full/vYMoGoG">Demo</a></p>
 <br>
 
-## Install
+➠ **Install**
 
-```bash
+```console
 yarn add text-slicer
-# or
-npm i text-slicer
 ```
 <br>
 
-## Quick start
+➠ **Import**
 
-```ts
+```javascript
 import { TextSlicer } from 'text-slicer';
+```
+<br>
 
-const slicer = new TextSlicer({ container: '.text-slicer' });
+➠ **Usage**
 
-slicer.init();
+```javascript
+const textSlicer = new TextSlicer();
+
+textSlicer.init();
 ```
 
-Initialize per element:
+<sub>Initialization with specified parameters</sub>
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+  const textSlicer = new TextSlicer({
+    container: '.text-slicer',
+    splitMode: 'both',
+    cssVariables: true,
+    dataAttributes: true,
+  }, {
+    onAfterRender: (metrics) => console.log(metrics)
+  });
 
-```ts
-document.querySelectorAll('.text-slicer').forEach((el) => {
-  const slicer = new TextSlicer({ container: el });
+  textSlicer.init();
+});
+```
 
-  slicer.init();
+<sub>How to apply the TextSlicer class to all elements on a page</sub>
+```javascript
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.text-slicer').forEach((element) => {
+    const textSlicer = new TextSlicer({ container: element });
+
+    textSlicer.init();
+  });
 });
 ```
 <br>
 
-## API
+➠ **Options**
 
-### Types
+|        Option        |          Type           |   Default    | Description                                                                                                                                              |
+|:--------------------:|:-----------------------:|:------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------|
+|      `container`     | `HTMLElement \| string` | `undefined`  | The target element or selector for text splitting.                                                                                                       |
+|      `splitMode`     |   `'words' \| 'chars' \| 'both'`   |   `both`     | Defines splitting mode: by words, characters, or both.                                                                                                   |
+|    `cssVariables`    |        `boolean`        |   `false`    | Enables CSS variables like `--word-index` and `--char-index` for each span.                                                                               |
+|   `dataAttributes`   |        `boolean`        |   `false`    | Adds `data-word` and `data-char` attributes for additional styling or scripting.                                                                          |
+| `keepWhitespaceNodes`|        `boolean`        |    `true`    | If `false`, whitespace nodes will be ignored when splitting characters.                                                                                  |
+| `containerHeightVar` |        `boolean`        |   `false`    | If `true`, sets a dynamic CSS variable `--container-height` that updates on resize.                                                                       |
 
-```ts
-export type SplitMode = 'words' | 'chars' | 'both';
-
-export interface TextSlicerOptions {
-  container?: HTMLElement | string;
-  splitMode?: SplitMode;
-  cssVariables?: boolean;
-  dataAttributes?: boolean;
-  /** Keep dedicated whitespace nodes between words (for precise animations). Default: true */
-  keepWhitespaceNodes?: boolean;
-  /** Freeze measured word widths to avoid reflow jitter on responsive layouts. Default: false */
-  freezeWordWidths?: boolean;
-}
-
-export interface TextSlicerMetrics {
-  wordTotal: number;
-  charTotal: number;
-  renderedAt: number;
-}
-
-export interface TextSlicerCallbacks {
-  onAfterRender?: (metrics: TextSlicerMetrics) => void;
-}
-```
-
-### Classnames & CSS vars
-
-```ts
-import { CLASSNAMES } from 'text-slicer';
-
-// Classes applied to generated spans
-CLASSNAMES.word       // 'ts-word'
-CLASSNAMES.char       // 'ts-char'
-CLASSNAMES.whitespace // 'ts-whitespace'
-
-// CSS variables placed on container and items (when cssVariables: true)
---word-total
---char-total
---word-index
---char-index
-```
-
-### Constructor
-
-```ts
-new TextSlicer(options?: TextSlicerOptions, callbacks?: TextSlicerCallbacks)
-```
-
-### Methods
-
-- `init(): void` – Perform initial split.
-- `reinit(newText?: string, nextOpts?: Partial<TextSlicerOptions>): void` – Update text and/or options and re-split.
-- `updateOptions(next: Partial<TextSlicerOptions>): void` – Merge options and re-split (if mounted).
-- `clear(): void` – Remove generated nodes and unfreeze widths.
-- `split(): void` – (Re)build DOM (called internally by `init`/`reinit`/`updateOptions`).
-- `destroy(): void` – Detach observers, clear DOM, and mark unmounted.
-- `get metrics(): TextSlicerMetrics` – Read-only metrics collected on the last render.
-
-### Options in detail
-
-- `splitMode` – `'words' | 'chars' | 'both'`. When `'both'`, each word is wrapped and further split into graphemes.
-- `cssVariables` – When `true`, indexes and totals are exposed as CSS custom properties for stagger animations.
-- `dataAttributes` – When `true`, adds `data-word` / `data-char` attributes.
-- `keepWhitespaceNodes` – When `true`, explicit whitespace nodes are inserted between words (class `ts-whitespace`).
-- `freezeWordWidths` – When `true`, measured widths of `.ts-word` nodes are frozen (after fonts load + next frame) and
-  kept in sync on container/window resize to prevent layout jitter during animations.
-
-### i18n-friendly grapheme splitting
-
-Characters are split using `Intl.Segmenter` (when available) with `{ granularity: 'grapheme' }`, so compound emoji and
-grapheme clusters render as expected. Environments without `Intl.Segmenter` gracefully fall back to `Array.from(text)`.
-
-### Callbacks
-
-```ts
-const slicer = new TextSlicer(
-  { container: '.title', cssVariables: true },
-  {
-    onAfterRender(metrics) {
-      // e.g. attach animation based on metrics.charTotal
-      console.log(metrics);
-    },
-  }
-);
-slicer.init();
-```
-
-### Responsive width freezing
-
-```ts
-const slicer = new TextSlicer({
-  container: '.headline',
-  splitMode: 'both',
-  freezeWordWidths: true,
-});
-slicer.init();
-```
-
-When enabled, widths are measured after fonts are ready and then frozen (`flex: 0 0 auto; width: <px>`). A `ResizeObserver`
-watches the container and a `resize` handler remeasures on viewport changes.
 <br>
 
-## CSS usage example
+➠ **Callbacks**
 
-```css
-.ts-char {
-  display: inline-block;
-  transform: translateY(0.75em);
-  opacity: 0;
-  transition: transform 400ms ease, opacity 400ms ease;
-}
+| Callback        | Arguments             | Description                                                                                             |
+|-----------------|-----------------------|---------------------------------------------------------------------------------------------------------|
+| `onAfterRender` | `TextSlicerMetrics`   | Invoked after rendering. Provides `wordTotal`, `charTotal`, and `renderedAt` timestamp.                  |
 
-.ts-char.appear {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* stagger via CSS variables */
-.ts-char {
-  transition-delay: calc(var(--char-index, 0) * 10ms);
-}
-```
 <br>
 
-## License
+➠ **API Methods**
 
-MIT
+| Method            | Description                                                                                      |
+|-------------------|--------------------------------------------------------------------------------------------------|
+| `init()`          | Initializes and renders text splitting.                                                          |
+| `reinit(newText?, options?)` | Re-initializes with optional new text and updated options.                              |
+| `clear()`         | Clears all content inside the container element.                                                  |
+| `split()`         | Manually triggers splitting and rendering.                                                        |
+| `destroy()`       | Cleans up instance, observers, and styles.                                                        |
+| `updateOptions()` | Updates options at runtime and re-renders if mounted.                                             |
+| `lockHeight()`    | Locks container height to its measured value.                                                     |
+| `unlockHeight()`  | Unlocks container height.                                                                         |
+| `metrics` (getter)| Returns current metrics: `wordTotal`, `charTotal`, and `renderedAt`.                              |
+
+<br>
+
+➠ **License**
+
+text-slicer is released under MIT license
