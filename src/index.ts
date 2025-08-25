@@ -59,6 +59,7 @@ const splitIntoGraphemes = (text: string): string[] => {
 
   if (typeof Seg === 'function') {
     const segmenter = new Seg('en', { granularity: 'grapheme' });
+
     return Array.from(segmenter.segment(text), (s: Intl.SegmentData) => s.segment);
   }
 
@@ -103,8 +104,10 @@ export class TextSlicer {
   private ro: ResizeObserver | null = null;
   private frozen = false;
 
+  private freezeScheduled = false;
+
   private freezeWordWidthsBound: () => void = (): void => {
-    this.freezeWordWidths();
+    this.scheduleFreezeNow();
   };
 
   constructor(options: TextSlicerOptions = {}, callbacks?: TextSlicerCallbacks) {
@@ -281,6 +284,18 @@ export class TextSlicer {
     return span;
   }
 
+  private scheduleFreezeNow(): void {
+    if (!this.el || !this.opts.freezeWordWidths) return;
+    if (this.freezeScheduled) return;
+
+    this.freezeScheduled = true;
+
+    requestAnimationFrame(() => {
+      this.freezeScheduled = false;
+      this.freezeWordWidths();
+    });
+  }
+
   private async scheduleFreezeWordWidths(): Promise<void> {
     if (!this.el || !this.opts.freezeWordWidths) return;
 
@@ -290,25 +305,44 @@ export class TextSlicer {
 
     await new Promise<void>((r) => requestAnimationFrame(() => r()));
 
-    this.freezeWordWidths();
+    this.scheduleFreezeNow();
     this.attachResizeObserver();
   }
 
-  private freezeWordWidths(): void {
-    if (!this.el) return;
+  private measureWordWidths(): number[] {
+    if (!this.el) return [];
 
     const words = this.el.querySelectorAll<HTMLElement>(`.${CLASSNAMES.word}`);
 
-    words.forEach((w) => {
+    return Array.from(words, (w) => {
       w.style.width = '';
       w.style.flex = '';
 
       const { width } = w.getBoundingClientRect();
 
-      w.style.width = `${Math.ceil(width)}px`;
+      return Math.ceil(width);
+    });
+  }
+
+  private applyWordWidths(widths: number[]): void {
+    if (!this.el) return;
+
+    const words = this.el.querySelectorAll<HTMLElement>(`.${CLASSNAMES.word}`);
+
+    words.forEach((w, i) => {
+      const width = widths[i] ?? 0;
+
+      w.style.width = `${width}px`;
       w.style.flex = '0 0 auto';
     });
+  }
 
+  private freezeWordWidths(): void {
+    if (!this.el) return;
+
+    const widths = this.measureWordWidths();
+
+    this.applyWordWidths(widths);
     this.frozen = true;
   }
 
@@ -330,10 +364,18 @@ export class TextSlicer {
 
     if (!this.ro) {
       this.ro = new ResizeObserver(() => {
-        this.freezeWordWidths();
+        this.scheduleFreezeNow();
       });
 
-      this.ro.observe(this.el);
+      try {
+        (
+          this.ro as unknown as {
+            observe: (t: Element, o?: { box?: ResizeObserverBoxOptions }) => void;
+          }
+        ).observe(this.el, { box: 'border-box' as ResizeObserverBoxOptions });
+      } catch {
+        this.ro.observe(this.el);
+      }
     }
 
     window.addEventListener('resize', this.freezeWordWidthsBound, { passive: true });
