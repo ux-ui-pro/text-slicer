@@ -1,15 +1,4 @@
 {
-  "compilerOptions": {
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "target": "ESNext",
-    "module": "ESNext",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "noImplicitAny": true
-  },
-  "include": ["src", "vite-env.d.ts", "vite.config.ts"]
+  "extends": "@ux-ui/tsconfig-base/tsconfig.json",
+  "include": ["src", "tsdown.config.ts"]
 }

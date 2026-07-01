@@ -102,7 +102,6 @@ export class TextSlicer {
   private callbacks: TextSlicerCallbacks | undefined;
   private charIndex: number;
   private mounted: boolean;
-  private heightLocked: boolean;
   private resizeObserver?: ResizeObserver;
 
   constructor(options: TextSlicerOptions = {}, callbacks?: TextSlicerCallbacks) {
@@ -117,7 +116,6 @@ export class TextSlicer {
     this.callbacks = callbacks;
     this.charIndex = 0;
     this.mounted = false;
-    this.heightLocked = false;
   }
 
   get metrics(): TextSlicerMetrics {
@@ -212,7 +210,6 @@ export class TextSlicer {
 
     if (h > 0) {
       this.el.style.height = `${h}px`;
-      this.heightLocked = true;
     }
   }
 
@@ -220,7 +217,6 @@ export class TextSlicer {
     if (!this.el) return;
 
     this.el.style.removeProperty('height');
-    this.heightLocked = false;
   }
 
   private appendWords(fragment: DocumentFragment, words: string[]): void {
@@ -309,8 +305,7 @@ export class TextSlicer {
     if (!this.el) return 0;
 
     this.el.classList.add(MEASURING_CLASS);
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    this.el.offsetHeight;
+    void this.el.offsetHeight;
 
     let h = this.el.offsetHeight || this.el.clientHeight || 0;
 
@@ -330,7 +325,7 @@ export class TextSlicer {
       const h = this.measureHeight();
 
       if (h > 0) {
-        this.el!.style.setProperty(CSS_VAR_CONTAINER_HEIGHT, `${h}px`);
+        this.el?.style.setProperty(CSS_VAR_CONTAINER_HEIGHT, `${h}px`);
       }
     });
 
